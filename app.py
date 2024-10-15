@@ -1,10 +1,18 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
 import random
 
 app = Flask(__name__)
+app.secret_key = 'shadow'  # Set a secret key for session management
 
-# Store the current math question and answer
-current_question = {}
+active_sessions = 0  # Global variable to track active sessions
+
+@app.before_request
+def check_new_session():
+    global active_sessions
+    if 'visited' not in session:
+        session['visited'] = True
+        active_sessions += 1
+        print(f"New session started. Total active sessions: {active_sessions}")
 
 @app.route('/')
 def home():
@@ -12,7 +20,6 @@ def home():
 
 @app.route('/math-question')
 def math_question():
-    global current_question
     questions = [
         {"question": "What is 2 + 3?", "answer": 5, "choices": [3, 4, 5, 6]},
         {"question": "What is 7 - 4?", "answer": 3, "choices": [2, 3, 4, 5]},
@@ -23,18 +30,23 @@ def math_question():
         {"question": "What is 12 + 11?", "answer": 23, "choices": [21, 22, 23, 24]},
         # Add more questions as needed
     ]
-    current_question = random.choice(questions)
+    question = random.choice(questions)
+    
+    # Store the current question and answer in the session
+    session['question'] = question['question']
+    session['answer'] = question['answer']
+
     return jsonify({
-        "question": current_question["question"],
-        "choices": current_question["choices"]
+        "question": session['question'],
+        "choices": question["choices"]
     })
 
 @app.route('/submit-answer', methods=['POST'])
 def submit_answer():
-    global current_question
     user_answer = request.json.get("answer")
-    print(f"Expected answer: {current_question.get('answer')}, User answer: {user_answer}")
-    correct = user_answer == current_question.get("answer")
+    #print(f"Expected answer: {session.get('answer')}, User answer: {user_answer}")
+    correct = user_answer == session.get("answer")
+    
     response = {
         "correct": correct,
         "message": "Correct!" if correct else "Try again!"
