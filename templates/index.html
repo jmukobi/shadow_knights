@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadowknights Training</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+    <!--<h1>Math Game</h1>-->
+    <div id="archer-container">
+        <img id="archer" src="/static/images/archer_drawn.png" alt="Archer">
+    </div>
+
+
+    <!-- Arrow Release Sound -->
+    <audio id="arrow-release-sound" preload="auto">
+        <source src="/static/audio/arrow_release.wav" type="audio/wav">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Arrow Hit Sound -->
+    <audio id="arrow-hit-sound" preload="auto">
+        <source src="/static/audio/arrow_hit.wav" type="audio/wav">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Correct answer counter -->
+    <div id="correct-counter">Correct Answers: 0</div>
+
+    <!-- Arrow -->
+    <div id="arrow-container">
+        <img id="arrow" src="/static/images/arrow.png" alt="Arrow">
+    </div>
+
+    <div id="target-container">
+        <img id="target" src="/static/images/target.png" alt="Target">
+    </div>
+
+    <div id="game-container">
+        <div id="question-container">
+            <p id="question">Click a choice to start!</p>
+            <div id="choices-container"></div> <!-- New container for multiple-choice options -->
+        </div>
+        <p id="response"></p>
+    </div>
+
+    <!-- Background Music -->
+    <audio id="background-music" loop>
+        <source src="/static/audio/Loop_Minstrel_Dance.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Mute Button -->
+    <button id="mute-button" onclick="toggleMute()">Play Music</button>
+
+    <div id="result-message"></div>
+
+    <script>
+        let musicStarted = false; // Track if music has started
+        let correctAnswers = 0; // Track correct answers count
+
+        // Bow and target center positions as percentages of their containers
+        const bowPosition = { x: 0.9, y: 0.5 };  // Near the right edge of the archer
+        const targetCenterPosition = { x: 0.12, y: 0.43 };  // Center of the target
+        
+        function setMusicVolume(volume) {
+            const music = document.getElementById('background-music');
+            music.volume = volume;  // Set the music volume based on the slider's value
+        }
+
+        // Toggle Mute and Play Music Functionality
+        function toggleMute() {
+            const music = document.getElementById("background-music");
+            const muteButton = document.getElementById("mute-button");
+            
+            if (!musicStarted) {
+                // Play the music on the first button click
+                music.play();
+                musicStarted = true;
+                muteButton.innerText = "Mute Music";
+                return; // Exit after first play
+            }
+
+            // Handle muting/unmuting after music starts
+            if (music.muted) {
+                music.muted = false;
+                muteButton.innerText = "Mute Music";
+            } else {
+                music.muted = true;
+                muteButton.innerText = "Unmute Music";
+            }
+        }
+
+        function getQuestion() {
+            fetch('/math-question')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('question').innerText = data.question;
+                    document.getElementById('response').innerText = '';
+                    displayChoices(data.choices); // Show multiple choices
+                    resetArrow(); // Reset the arrow for a new question
+                    hideResultMessage(); // Hide the result message for the next question
+                });
+        }
+
+        function displayChoices(choices) {
+            const choicesContainer = document.getElementById('choices-container');
+            choicesContainer.innerHTML = ''; // Clear previous choices
+
+            // Create a button for each choice
+            choices.forEach(choice => {
+                const choiceButton = document.createElement('button');
+                choiceButton.innerText = choice;
+                choiceButton.onclick = () => submitAnswer(choice); // Bind the choice to submitAnswer()
+                choicesContainer.appendChild(choiceButton);
+            });
+        }
+        
+        function disableButtons() {
+            const buttons = document.querySelectorAll('#choices-container button');
+            buttons.forEach(button => {
+                button.disabled = true;  // Disable each button
+            });
+        }
+
+        function enableButtons() {
+            const buttons = document.querySelectorAll('#choices-container button');
+            buttons.forEach(button => {
+                button.disabled = false;  // Re-enable each button
+            });
+        }
+
+        function submitAnswer(selectedChoice) {
+            disableButtons(); // Disable all choice buttons after selection
+            fetch('/submit-answer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ answer: selectedChoice })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.correct) {
+                    shootArrow(true); // Correct answer, shoot the arrow to hit
+                } else {
+                    shootArrow(false); // Incorrect answer, arrow misses
+                }
+
+                // Show the result after the arrow flies
+                setTimeout(() => {
+                    showResultMessage(data.correct); // Show the result message after the arrow
+                    if (data.correct) {
+                        correctAnswers++; // Increment correct answers count
+                        updateCounter(); // Update the counter
+                    }
+                    setTimeout(() => {
+                        getQuestion(); // Load the next question after a short delay
+                        enableButtons(); // Re-enable the buttons when the next question appears
+                    }, 2000); // 2-second delay before the next question
+                }, 2000); // Delay for the arrow to finish flying
+            });
+        }
+
+        function shootArrow(isCorrect) {
+            const releaseSound = document.getElementById('arrow-release-sound');
+            const hitSound = document.getElementById('arrow-hit-sound');
+            releaseSound.volume = 1.0;  // Ensure the volume is at maximum (range is 0.0 to 1.0)
+            hitSound.volume = 1.0;      // Ensure the volume is at maximum (range is 0.0 to 1.0)
+
+            const arrow = document.getElementById('arrow-container');
+            const archer = document.getElementById('archer-container');
+            const target = document.getElementById('target-container');
+
+            // Get dynamic positions based on element sizes
+            const bowPos = getBowPosition(archer);
+            const targetCenterPos = getTargetCenterPosition(target, isCorrect);
+
+            // Set arrow's initial position at the bow
+            arrow.style.left = `${bowPos.x}px`;
+            arrow.style.top = `${bowPos.y}px`;
+            arrow.style.visibility = 'visible';  // Show the arrow
+
+            // Play the arrow release sound only if sound is unmuted
+            console.log("Playing release sound  1");
+            setTimeout(() => {
+                console.log("Playing release sound");
+                releaseSound.play().catch(error => console.log("Error playing release sound:", error));
+            }, 10); // 10ms delay to ensure no blocking
+
+            // Calculate final position for the arrow (to hit or miss)
+            const finalX = targetCenterPos.x;
+            const finalY = targetCenterPos.y;
+
+            // Move the arrow towards the target or off-screen for a miss
+            arrow.style.transition = 'left 1s linear, top 1s linear';
+            arrow.style.left = `${finalX}px`;
+            arrow.style.top = `${finalY}px`;
+            
+            // If it's a correct answer, change the arrow image to "arrow_in_target.png"
+            if (isCorrect) {
+                setTimeout(() => {
+                    document.getElementById('arrow').src = '/static/images/arrow_in_target.png';
+                    setTimeout(() => {
+                        hitSound.play();
+                        
+                    }, 10);  // Slight delay to match the arrow hitting timing
+                }, 1000);  // Delay to match the arrow's flight duration
+            }
+
+            // Reset the arrow after the animation
+            setTimeout(() => resetArrow(), 2000);
+        }
+
+            // Calculate the position of the bow on the archer
+        function getBowPosition(archer) {
+            const rect = archer.getBoundingClientRect();
+            const x = rect.left + rect.width * bowPosition.x;  // X position on the archer (near right)
+            const y = rect.top + rect.height * bowPosition.y;  // Y position on the archer (middle)
+            return { x, y };
+        }
+
+        // Calculate the center position of the target (or miss)
+        function getTargetCenterPosition(target, isCorrect) {
+            const rect = target.getBoundingClientRect();
+            let x = rect.left + rect.width * targetCenterPosition.x;  // X center of the target
+            let y = rect.top + rect.height * targetCenterPosition.y;  // Y center of the target
+
+            // If incorrect, move the arrow above or below to simulate a miss
+            if (!isCorrect) {
+                // move the arrow past the right side of the window
+                x = window.innerWidth + 100;
+                y += rect.height * 0.2;  // Move it higher or lower to simulate a miss
+            }
+
+            return { x, y };
+        }
+
+        function resetArrow() {
+            const arrow = document.getElementById('arrow-container');
+            arrow.style.transition = 'none'; // Reset transition
+            arrow.style.left = '12%'; // Reset position to archer
+            arrow.style.top = '50%'; // Reset vertical position
+            arrow.style.visibility = 'hidden'; // Hide the arrow
+
+            // Reset the arrow image back to the normal arrow after hiding it
+            document.getElementById('arrow').src = '/static/images/arrow.png';
+        }
+
+        function showResultMessage(isCorrect) {
+            const resultMessage = document.getElementById('result-message');
+            if (isCorrect) {
+                resultMessage.innerText = "Correct!";
+                resultMessage.style.color = "green";
+            } else {
+                resultMessage.innerText = "Incorrect!";
+                resultMessage.style.color = "red";
+            }
+            resultMessage.style.visibility = "visible";
+        }
+
+        function hideResultMessage() {
+            const resultMessage = document.getElementById('result-message');
+            resultMessage.style.visibility = "hidden";
+        }
+        
+        // Start the game with the first question when the page loads
+        window.onload = function() {
+            getQuestion(); // Automatically fetch the first question
+            const music = document.getElementById('background-music');
+            music.volume = 0.15;  // Set background music volume to 50%
+        }
+
+        function updateCounter() {
+            const counter = document.getElementById('correct-counter');
+            counter.innerText = `Correct Answers: ${correctAnswers}`;
+        }
+
+    </script>
+</body>
+</html>

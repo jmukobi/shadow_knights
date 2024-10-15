@@ -1,0 +1,161 @@
+/* static/css/styles.css */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-image: url('background3.jpg');
+    background-size: cover; /* Ensures the image covers the entire background */
+    background-position: center;
+    background-repeat: no-repeat;
+    font-family: 'Poppins', sans-serif; /* You can change this to your desired font */
+    font-size: 18px; /* Adjust the base font size */
+    color: white; /* Default color for text */
+}
+
+/* Center the game UI at the bottom */
+#game-container {
+    position: absolute;
+    bottom: 20px; /* Adjust this to move it further up or down */
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 80%;
+}
+
+/* Question Text */
+#question-container {
+    font-size: 24px; /* Bigger for the question */
+}
+
+/* Choice Buttons */
+#choices-container button {
+    font-size: 18px; /* Font size for the choice buttons */
+    padding: 10px;
+}
+
+/* Style the buttons and input fields */
+input[type="number"], button {
+    font-size: 16px;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    border: none;
+}
+
+/* Improve the appearance of the response text */
+#response {
+    font-size: 18px;
+    color: white;
+}
+
+/* Style the main title */
+h1 {
+    text-align: center;
+    color: white;
+    font-size: 36px;
+    margin-top: 20px;
+    font-family: Arial, sans-serif;
+}
+
+#archer {
+    max-width: 60%; /* Ensures the archer image scales well */
+    height: auto;
+}
+
+/* Position the target on the right third of the screen */
+#target-container {
+    position: absolute;
+    right: -5%; /* Adjust this to move it further left or right */
+    top: 55%;  /* Vertically centered similarly to the archer */
+    transform: translateY(-50%);
+}
+
+#target {
+    max-width: 70%; /* Ensures the target image scales well */
+    height: auto;
+}
+
+/* Position the archer on the left third of the screen */
+#archer-container {
+    position: absolute;
+    left: 5%; /* Adjust this to move it further left or right */
+    top: 50%;
+    transform: translateY(-50%);
+    animation: float 2s ease-out infinite; /* Apply the animation */
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(-50%); /* Start at original position */
+    }
+    50% {
+        transform: translateY(-48%); /* Move up by 5% */
+    }
+    100% {
+        transform: translateY(-50%); /* Back to original position */
+    }
+}
+
+#mute-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 16px;
+    padding: 10px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#mute-button:hover {
+    background-color: #555;
+}
+
+/* Position the arrow next to the archer */
+#arrow-container {
+    position: absolute;
+    left: 12%; /* Near the archer */
+    top: 50%; /* Vertically centered like the archer */
+    transform: translateY(-50%);
+    z-index: 10; /* Ensure it's on top of the target */
+    visibility: hidden; /* Hidden until we shoot it */
+}
+
+#arrow {
+    max-width: 100px; /* Adjust as needed */
+    height: auto;
+}
+
+#result-message {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 150px;
+    font-weight: bold;
+    color: white;
+    visibility: hidden; /* Hidden by default */
+}
+
+/* Style the correct answer counter */
+#correct-counter {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 10px;
+    z-index: 20; /* Make sure it stays above other elements */
+}
