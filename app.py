@@ -1,8 +1,16 @@
 from flask import Flask, request, jsonify, render_template, session
+from flask_session import Session  # Import Flask-Session
 import random
 
 app = Flask(__name__)
 app.secret_key = 'shadow'  # Set a secret key for session management
+
+# Configure Flask-Session to use server-side session storage
+app.config['SESSION_TYPE'] = 'filesystem'  # Use filesystem-based session storage
+app.config['SESSION_PERMANENT'] = False  # Make sessions non-permanent
+app.config['SESSION_FILE_DIR'] = './flask_session/'  # Directory where session files will be stored
+
+Session(app)  # Initialize Flask-Session for server-side sessions
 
 active_sessions = 0  # Global variable to track active sessions
 
@@ -44,7 +52,6 @@ def math_question():
 @app.route('/submit-answer', methods=['POST'])
 def submit_answer():
     user_answer = request.json.get("answer")
-    #print(f"Expected answer: {session.get('answer')}, User answer: {user_answer}")
     correct = user_answer == session.get("answer")
     
     response = {
