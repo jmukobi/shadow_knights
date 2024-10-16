@@ -74,6 +74,7 @@ h1 {
     right: -5%; /* Adjust this to move it further left or right */
     top: 55%;  /* Vertically centered similarly to the archer */
     transform: translateY(-50%);
+    transition: transform 0.5s ease; /* Smooth transition */
 }
 
 #target {
@@ -143,6 +144,10 @@ h1 {
     font-weight: bold;
     color: white;
     visibility: hidden; /* Hidden by default */
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+    padding: 20px; /* Add some padding around the text */
+    border-radius: 10px; /* Add rounded corners */
+    text-align: center;
 }
 
 /* Style the correct answer counter */
@@ -159,3 +164,40 @@ h1 {
     border-radius: 10px;
     z-index: 20; /* Make sure it stays above other elements */
 }
+
+/* Wobble Animation */
+@keyframes wobble {
+    0% { transform: translateX(0%) translateY(-50%); }
+    25% { transform: translateX(1%) translateY(-50%); }
+    50% { transform: translateX(0%) translateY(-50%); }
+    75% { transform: translateX(-.5%) translateY(-50%); }
+    100% { transform: translateX(0%) translateY(-50%); }
+}
+
+/* Wobble Animation */
+@keyframes arrow_wobble {
+    0% { transform: translateX(0%); }
+    25% { transform: translateX(3%); }
+    50% { transform: translateX(0%); }
+    75% { transform: translateX(-1.5%); }
+    100% { transform: translateX(0%); }
+}
+
+/* Add the wobble effect when the wobble class is applied */
+.wobble {
+    /*transform: translateY(-50%);*/
+    animation: wobble .2s ease;
+    will-change: transform;
+}
+
+/* Add the wobble effect when the wobble class is applied */
+.arrow_wobble {
+    /*transform: translateY(-50%);*/
+    animation: arrow_wobble .2s ease;
+    will-change: transform;
+}
+
+/* Ensure the wobble doesn't interfere with vertical positioning */
+/*#target-container.wobble {
+    transform: translateY(-50%); /* Keep vertical position intact while wobbling 
+}*/

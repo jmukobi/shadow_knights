@@ -206,6 +206,18 @@
                     document.getElementById('arrow').src = '/static/images/arrow_in_target.png';
                     setTimeout(() => {
                         hitSound.play();
+
+                        // Apply the wobble effect to the target when hit
+                        target.classList.add('wobble');
+
+                        // Apply the wobble effect to the arrow
+                        document.getElementById('arrow').classList.add('arrow_wobble');
+                        
+                        // Remove the wobble classes after the animation ends
+                        setTimeout(() => {
+                            target.classList.remove('wobble');
+                            document.getElementById('arrow').classList.remove('arrow_wobble');
+                        }, 500);
                         
                     }, 10);  // Slight delay to match the arrow hitting timing
                 }, 1000);  // Delay to match the arrow's flight duration
